@@ -1,23 +1,26 @@
+const API_BASE = 'https://YOUR_NETLIFY_SITE.netlify.app/.netlify/functions';
+
+function ensureClientId(callback) {
+  chrome.storage.local.get(["clientId"], (res) => {
+    if (res.clientId) return callback(res.clientId);
+    const newId = crypto.getRandomValues ? [...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('') : `${Date.now()}-${Math.random()}`;
+    chrome.storage.local.set({ clientId: newId }, () => callback(newId));
+  });
+}
+
 function checkPixels() {
-  chrome.storage.local.get(["botToken", "chatId", "lastNotificationSent", "monitoringEnabled"], (data) => {
-    const { botToken, chatId, lastNotificationSent, monitoringEnabled } = data;
+  chrome.storage.local.get(["lastNotificationSent", "monitoringEnabled"], (data) => {
+    const { lastNotificationSent, monitoringEnabled } = data;
     
-    // Check if monitoring is disabled
     if (monitoringEnabled === false) {
       console.log("Monitoring is disabled. Skipping pixel check.");
-      return;
-    }
-    
-    if (!botToken || !chatId) {
-      console.log("Missing Telegram settings. Please configure bot token and chat ID.");
       return;
     }
 
     console.log("Checking pixel count...");
     
-    // Use the current browser session (cookies will be automatically included)
     fetch("https://backend.wplace.live/me", {
-      credentials: 'include' // Include cookies for authentication
+      credentials: 'include'
     })
       .then(res => {
         if (!res.ok) {
@@ -32,7 +35,6 @@ function checkPixels() {
         console.log("User data received:", user);
         
         if (user.charges && user.charges.count >= user.charges.max) {
-          // Check if we already sent a notification for this full state
           const currentPixelState = `${user.charges.count}_${user.charges.max}`;
           
           if (lastNotificationSent === currentPixelState) {
@@ -40,31 +42,31 @@ function checkPixels() {
             return;
           }
           
-          console.log("Pixels are full, sending Telegram message...");
-          
+          console.log("Pixels are full, requesting backend to send Telegram message...");
+
           const message = `🎨 Your Wplace pixels are FULL! (${user.charges.count}/${user.charges.max})`;
-          
-          fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              chat_id: chatId,
-              text: message
+
+          ensureClientId((clientId) => {
+            fetch(`${API_BASE}/telegram-send`, {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ clientId, message })
             })
-          })
-          .then(res => res.json())
-          .then(result => {
-            if (result.ok) {
-              console.log("Telegram message sent successfully!");
-              // Save that we sent a notification for this pixel state
-              chrome.storage.local.set({ lastNotificationSent: currentPixelState });
-            } else {
-              console.error("Telegram API error:", result.description);
-            }
-          })
-          .catch(err => console.error("Telegram API error:", err));
+            .then(res => {
+              if (!res.ok) throw new Error(`HTTP ${res.status}`);
+              return res.json();
+            })
+            .then(result => {
+              if (result.ok) {
+                console.log("Backend sent Telegram message successfully!");
+                chrome.storage.local.set({ lastNotificationSent: currentPixelState });
+              } else {
+                console.error("Backend /telegram-send error:", result.error || result);
+              }
+            })
+            .catch(err => console.error("Backend /telegram-send error:", err));
+          });
         } else {
-          // Pixels are not full, clear the notification state so we can notify again when they fill up
           if (lastNotificationSent) {
             console.log("Pixels are no longer full, clearing notification state...");
             chrome.storage.local.remove("lastNotificationSent");

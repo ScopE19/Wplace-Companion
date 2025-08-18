@@ -1,70 +1,86 @@
 document.addEventListener("DOMContentLoaded", () => {
-    const botTokenInput = document.getElementById("botToken");
-    const chatIdInput = document.getElementById("chatId");
     const status = document.getElementById("status");
     const toggleButton = document.getElementById("toggleMonitoring");
+    const connectBtn = document.getElementById("connectTelegram");
+
+    const API_BASE = 'https://YOUR_NETLIFY_SITE.netlify.app/.netlify/functions';
+
+    function generateClientId() {
+      return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
+        const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+        return v.toString(16);
+      });
+    }
+
+    function ensureClientId(cb) {
+      chrome.storage.local.get(["clientId"], (res) => {
+        if (res.clientId) return cb(res.clientId);
+        const newId = generateClientId();
+        chrome.storage.local.set({ clientId: newId }, () => cb(newId));
+      });
+    }
   
     // Load saved values
-    chrome.storage.local.get(["botToken", "chatId", "monitoringEnabled"], (res) => {
-      if (res.botToken) botTokenInput.value = res.botToken;
-      if (res.chatId) chatIdInput.value = res.chatId;
+    chrome.storage.local.get(["monitoringEnabled"], (res) => {
       updateMonitoringButton(res.monitoringEnabled !== false); // Default to true if not set
     });
   
-    // Save values
-    document.getElementById("save").addEventListener("click", () => {
-      const botToken = botTokenInput.value.trim();
-      const chatId = chatIdInput.value.trim();
-      
-      if (!botToken || !chatId) {
-        status.textContent = "❌ Bot token and chat ID are required!";
-        setTimeout(() => { status.textContent = ""; }, 3000);
-        return;
-      }
-      
-      chrome.storage.local.set({
-        botToken: botToken,
-        chatId: chatId
-      }, () => {
-        status.textContent = "✅ Saved!";
-        setTimeout(() => { status.textContent = ""; }, 2000);
+    // Connect Telegram
+    if (connectBtn) {
+      connectBtn.addEventListener("click", () => {
+        ensureClientId((clientId) => {
+          status.textContent = "🔄 Opening Telegram...";
+          fetch(`${API_BASE}/telegram-link-start`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ clientId })
+          })
+          .then(res => {
+            if (!res.ok) throw new Error(`HTTP ${res.status}`);
+            return res.json();
+          })
+          .then(data => {
+            if (data && data.deepLink) {
+              chrome.tabs.create({ url: data.deepLink });
+              status.textContent = "✅ Follow the Telegram link to connect.";
+            } else {
+              status.textContent = "❌ Failed to get Telegram link.";
+            }
+            setTimeout(() => { status.textContent = ""; }, 5000);
+          })
+          .catch(() => {
+            status.textContent = "❌ Error starting Telegram link.";
+            setTimeout(() => { status.textContent = ""; }, 5000);
+          });
+        });
       });
-    });
+    }
 
     // Test notification
     document.getElementById("test").addEventListener("click", () => {
-      const botToken = botTokenInput.value.trim();
-      const chatId = chatIdInput.value.trim();
-      
-      if (!botToken || !chatId) {
-        status.textContent = "❌ Please save settings first!";
-        setTimeout(() => { status.textContent = ""; }, 3000);
-        return;
-      }
-
       status.textContent = "🔄 Testing notification...";
-      
-      // Send test message to Telegram
-      fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          chat_id: chatId,
-          text: "🧪 Test notification from WPlace Pixel Notifier! If you see this, your bot is working correctly."
+      ensureClientId((clientId) => {
+        fetch(`${API_BASE}/telegram-send`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            clientId,
+            message: "🧪 Test notification from WPlace Pixel Notifier! If you see this, your bot is working correctly."
+          })
         })
-      })
-      .then(res => res.json())
-      .then(result => {
-        if (result.ok) {
-          status.textContent = "✅ Test message sent! Check your Telegram.";
-        } else {
-          status.textContent = `❌ Telegram error: ${result.description}`;
-        }
-        setTimeout(() => { status.textContent = ""; }, 5000);
-      })
-      .catch(err => {
-        status.textContent = "❌ Test failed. Check your bot token and chat ID.";
-        setTimeout(() => { status.textContent = ""; }, 5000);
+        .then(res => res.json())
+        .then(result => {
+          if (result.ok) {
+            status.textContent = "✅ Test message sent! Check your Telegram.";
+          } else {
+            status.textContent = `❌ Error: ${result.error || 'Failed to send.'}`;
+          }
+          setTimeout(() => { status.textContent = ""; }, 5000);
+        })
+        .catch(() => {
+          status.textContent = "❌ Test failed. Are you linked to Telegram?";
+          setTimeout(() => { status.textContent = ""; }, 5000);
+        });
       });
     });
 

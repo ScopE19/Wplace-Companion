@@ -9,7 +9,7 @@
     ],
     "host_permissions": [
       "https://backend.wplace.live/*",
-      "https://api.telegram.org/*"
+      "https://*.netlify.app/*"
     ],
     "background": {
       "service_worker": "background.js"
