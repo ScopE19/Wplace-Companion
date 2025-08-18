@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>WPlace Notifier Settings</title>
+  <style>
+    body { font-family: sans-serif; padding: 10px; width: 250px; }
+    input { width: 100%; margin-bottom: 8px; }
+    button { width: 100%; margin-bottom: 5px; padding: 5px; }
+    .test-btn { background-color: #4CAF50; color: white; border: none; }
+    .test-btn:hover { background-color: #45a049; }
+    .reset-btn { background-color: #ff9800; color: white; border: none; }
+    .reset-btn:hover { background-color: #f57c00; }
+    .disable-btn { background-color: #f44336; color: white; border: none; }
+    .disable-btn:hover { background-color: #d32f2f; }
+    .enable-btn { background-color: #2196F3; color: white; border: none; }
+    .enable-btn:hover { background-color: #1976D2; }
+    .info { font-size: 12px; color: #666; margin-bottom: 10px; background-color: #f0f8ff; padding: 8px; border-radius: 4px; }
+    .info a { color: #0066cc; text-decoration: none; }
+    .info a:hover { text-decoration: underline; }
+    .warning { font-size: 11px; color: #d32f2f; margin-bottom: 10px; background-color: #ffebee; padding: 8px; border-radius: 4px; border-left: 3px solid #f44336; }
+  </style>
+</head>
+<body>
+  <h3>Notifier Settings</h3>
+  
+  <div class="warning">
+    ⚠️ <strong>Risk Warning:</strong> Using automated tools may violate WPlace's Terms of Service and could result in account suspension. Use at your own risk.
+  </div>
+  
+  <div class="info">
+    💡 <strong>Important:</strong> Make sure you're logged into <a href="https://wplace.live" target="_blank">wplace.live</a> in this browser tab first! The extension will use your current login session.
+  </div>
+  
+  <label>Bot Token</label>
+  <input id="botToken" type="text" placeholder="Telegram bot token">
+  
+  <label>Chat ID</label>
+  <input id="chatId" type="text" placeholder="Telegram chat ID">
+
+  <button id="save">Save Settings</button>
+  <button id="test" class="test-btn">Test Notification</button>
+  <button id="reset" class="reset-btn">Reset Notifications</button>
+  <button id="toggleMonitoring" class="disable-btn">Disable Monitoring</button>
+
+  <p id="status"></p>
+
+  <script src="popup.js"></script>
+</body>
+</html>
