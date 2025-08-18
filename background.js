@@ -9,8 +9,8 @@ function ensureClientId(callback) {
 }
 
 function checkPixels() {
-  chrome.storage.local.get(["lastNotificationSent", "monitoringEnabled"], (data) => {
-    const { lastNotificationSent, monitoringEnabled } = data;
+  chrome.storage.local.get(["lastNotificationSent", "monitoringEnabled", "notifyAtHalf", "lastHalfNotificationSent"], (data) => {
+    const { lastNotificationSent, monitoringEnabled, notifyAtHalf, lastHalfNotificationSent } = data;
     
     if (monitoringEnabled === false) {
       console.log("Monitoring is disabled. Skipping pixel check.");
@@ -44,7 +44,7 @@ function checkPixels() {
           
           console.log("Pixels are full, requesting backend to send Telegram message...");
 
-          const message = `🎨 Your Wplace pixels are FULL! (${user.charges.count}/${user.charges.max})`;
+          const message = `Your Wplace pixels are FULL (${user.charges.count}/${user.charges.max})`;
 
           ensureClientId((clientId) => {
             fetch(`${API_BASE}/telegram-send`, {
@@ -67,6 +67,32 @@ function checkPixels() {
             .catch(err => console.error("Backend /telegram-send error:", err));
           });
         } else {
+          // Optional half notification
+          if (notifyAtHalf && user.charges && user.charges.max) {
+            const isAtLeastHalf = user.charges.count >= Math.floor(user.charges.max / 2);
+            const halfState = `half_${user.charges.max}`;
+            if (isAtLeastHalf && lastHalfNotificationSent !== halfState) {
+              ensureClientId((clientId) => {
+                const msg = `Your Wplace pixels are at least half full (${user.charges.count}/${user.charges.max})`;
+                fetch(`${API_BASE}/telegram-send`, {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ clientId, message: msg })
+                })
+                .then(res => res.json())
+                .then(result => {
+                  if (result.ok) {
+                    chrome.storage.local.set({ lastHalfNotificationSent: halfState });
+                  }
+                })
+                .catch(() => {});
+              });
+            }
+            if (user.charges.count < Math.floor(user.charges.max / 2) && lastHalfNotificationSent) {
+              chrome.storage.local.remove("lastHalfNotificationSent");
+            }
+          }
+
           if (lastNotificationSent) {
             console.log("Pixels are no longer full, clearing notification state...");
             chrome.storage.local.remove("lastNotificationSent");

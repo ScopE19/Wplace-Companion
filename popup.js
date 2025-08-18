@@ -2,6 +2,8 @@ document.addEventListener("DOMContentLoaded", () => {
     const status = document.getElementById("status");
     const toggleButton = document.getElementById("toggleMonitoring");
     const connectBtn = document.getElementById("connectTelegram");
+    const connectionStatus = document.getElementById("connectionStatus");
+    const notifyAtHalfCheckbox = document.getElementById("notifyAtHalf");
 
     const API_BASE = 'https://wplace-companion.netlify.app/.netlify/functions';
 
@@ -21,8 +23,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   
     // Load saved values
-    chrome.storage.local.get(["monitoringEnabled"], (res) => {
+    chrome.storage.local.get(["monitoringEnabled", "notifyAtHalf"], (res) => {
       updateMonitoringButton(res.monitoringEnabled !== false); // Default to true if not set
+      notifyAtHalfCheckbox.checked = Boolean(res.notifyAtHalf);
+    });
+
+    // Persist notify-at-half toggle
+    notifyAtHalfCheckbox.addEventListener('change', () => {
+      chrome.storage.local.set({ notifyAtHalf: notifyAtHalfCheckbox.checked });
     });
   
     // Connect Telegram
@@ -55,6 +63,24 @@ document.addEventListener("DOMContentLoaded", () => {
         });
       });
     }
+
+    // Show connection status
+    ensureClientId((clientId) => {
+      fetch(`${API_BASE}/telegram-status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ clientId })
+      })
+      .then(r => r.json())
+      .then(d => {
+        if (d.ok && d.connected) {
+          connectionStatus.textContent = `Telegram: connected (${d.chatId})`;
+        } else {
+          connectionStatus.textContent = 'Telegram: not connected';
+        }
+      })
+      .catch(() => { connectionStatus.textContent = 'Telegram: unknown'; });
+    });
 
     // Test notification
     document.getElementById("test").addEventListener("click", () => {

@@ -5,7 +5,7 @@
   <title>WPlace Notifier Settings</title>
   <style>
     body { font-family: sans-serif; padding: 10px; width: 250px; }
-    input { width: 100%; margin-bottom: 8px; }
+    input[type="text"] { width: 100%; margin-bottom: 8px; }
     button { width: 100%; margin-bottom: 5px; padding: 5px; }
     .test-btn { background-color: #4CAF50; color: white; border: none; }
     .test-btn:hover { background-color: #45a049; }
@@ -19,22 +19,22 @@
     .info a { color: #0066cc; text-decoration: none; }
     .info a:hover { text-decoration: underline; }
     .warning { font-size: 11px; color: #d32f2f; margin-bottom: 10px; background-color: #ffebee; padding: 8px; border-radius: 4px; border-left: 3px solid #f44336; }
+    .summary { font-size: 12px; color: #333; margin-bottom: 10px; }
+    .inline-checkbox { display: flex; align-items: center; gap: 6px; font-size: 12px; margin: 8px 0; }
+    .inline-checkbox input { margin: 0; }
   </style>
 </head>
 <body>
   <h3>Notifier Settings</h3>
-  
-  <div class="warning">
-    ⚠️ <strong>Risk Warning:</strong> Using automated tools may violate WPlace's Terms of Service and could result in account suspension. Use at your own risk.
+  <div class="summary">
+    This extension checks your WPlace pixel count and can notify you via a shared Telegram bot.
   </div>
   
   <div class="info">
-    💡 <strong>Important:</strong> Make sure you're logged into <a href="https://wplace.live" target="_blank">wplace.live</a> in this browser tab first! The extension will use your current login session.
+    <strong>Important:</strong> Make sure you're logged into <a href="https://wplace.live" target="_blank">wplace.live</a> in this browser tab first. The extension uses your current login session.
   </div>
   
-  <div class="info">
-    This extension uses a shared Telegram bot. Connect your Telegram once below.
-  </div>
+  
 
   <button id="connectTelegram" class="test-btn">Connect Telegram</button>
   <button id="test" class="test-btn">Test Notification</button>
@@ -42,6 +42,10 @@
   <button id="toggleMonitoring" class="disable-btn">Disable Monitoring</button>
 
   <p id="status"></p>
+
+  <label class="inline-checkbox"><input type="checkbox" id="notifyAtHalf" /> Notify when pixel count is at half</label>
+  <hr/>
+  <div id="connectionStatus">Telegram: unknown</div>
 
   <script src="popup.js"></script>
 </body>
