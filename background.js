@@ -1,4 +1,4 @@
-const API_BASE = 'https://YOUR_NETLIFY_SITE.netlify.app/.netlify/functions';
+const API_BASE = 'https://wplace-companion.netlify.app/.netlify/functions';
 
 function ensureClientId(callback) {
   chrome.storage.local.get(["clientId"], (res) => {

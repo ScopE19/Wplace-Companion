@@ -3,7 +3,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const toggleButton = document.getElementById("toggleMonitoring");
     const connectBtn = document.getElementById("connectTelegram");
 
-    const API_BASE = 'https://YOUR_NETLIFY_SITE.netlify.app/.netlify/functions';
+    const API_BASE = 'https://wplace-companion.netlify.app/.netlify/functions';
 
     function generateClientId() {
       return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
@@ -29,7 +29,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (connectBtn) {
       connectBtn.addEventListener("click", () => {
         ensureClientId((clientId) => {
-          status.textContent = "🔄 Opening Telegram...";
+          status.textContent = "Opening Telegram...";
           fetch(`${API_BASE}/telegram-link-start`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
@@ -65,7 +65,7 @@ document.addEventListener("DOMContentLoaded", () => {
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             clientId,
-            message: "🧪 Test notification from WPlace Pixel Notifier! If you see this, your bot is working correctly."
+            message: "Test notification from WPlace Pixel Notifier! If you see this, your bot is working correctly."
           })
         })
         .then(res => res.json())
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
     // Reset notifications
     document.getElementById("reset").addEventListener("click", () => {
       chrome.storage.local.remove("lastNotificationSent", () => {
-        status.textContent = "🔄 Notification state reset! You'll get notified again when pixels fill up.";
+        status.textContent = "Notification state reset! You'll get notified again when pixels fill up.";
         setTimeout(() => { status.textContent = ""; }, 4000);
       });
     });
@@ -101,11 +101,11 @@ document.addEventListener("DOMContentLoaded", () => {
           updateMonitoringButton(newState);
           
           if (newState) {
-            status.textContent = "✅ Monitoring enabled! Extension will check pixels automatically.";
+            status.textContent = "Monitoring enabled! Extension will check pixels automatically.";
             // Restart monitoring
             chrome.runtime.sendMessage({ action: "startMonitoring" });
           } else {
-            status.textContent = "⏸️ Monitoring disabled! Extension will not check pixels automatically.";
+            status.textContent = "Monitoring disabled! Extension will not check pixels automatically.";
             // Stop monitoring
             chrome.runtime.sendMessage({ action: "stopMonitoring" });
           }
