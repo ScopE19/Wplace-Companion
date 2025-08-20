@@ -75,7 +75,7 @@ function setMode(mode) {
   
   // Send message to content script to update mode
   chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-    if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+    if (tabs[0] && tabs[0].url.startsWith("http")) {
       chrome.tabs.sendMessage(tabs[0].id, {
         action: 'setMode',
         mode: mode
@@ -114,19 +114,19 @@ function setMode(mode) {
         }, () => {
           // Send message to create or update overlay
           chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs[0] && tabs[0].url.includes('wplace.live')) {
-              chrome.tabs.sendMessage(tabs[0].id, {
-                action: 'createOverlay',
-                imageData: imageData,
-                opacity: parseInt(opacitySlider.value) / 100,
-                mode: currentMode
+            if (tabs[0] && tabs[0].url.startsWith("http")) {
+              chrome.tabs.sendMessage(tabs[0].id, { action: 'toggleOverlay' });
+              
+              // Toggle stored visibility state
+              chrome.storage.local.get(["overlayVisible"], (result) => {
+                const newVisibility = !result.overlayVisible;
+                chrome.storage.local.set({ overlayVisible: newVisibility });
+                
+                status.textContent = newVisibility ? "Overlay shown!" : "Overlay hidden!";
+                setTimeout(() => { status.textContent = ""; }, 3000);
               });
-              status.textContent = "Image uploaded successfully!";
-              setTimeout(() => { status.textContent = ""; }, 3000);
-            } else {
-              status.textContent = "Please navigate to wplace.live first!";
-              setTimeout(() => { status.textContent = ""; }, 3000);
             }
+            
           });
           
           // Enable controls
@@ -154,7 +154,7 @@ function setMode(mode) {
     
     // Update overlay if it exists
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+      if (tabs[0] && tabs[0].url.startsWith("http")) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'updateOverlayOpacity',
           opacity: parseInt(opacitySlider.value) / 100
@@ -166,7 +166,7 @@ function setMode(mode) {
   // Toggle overlay visibility
   toggleOverlayBtn.addEventListener('click', () => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+      if (tabs[0] && tabs[0].url.startsWith("http")) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'toggleOverlay'
         });
@@ -179,9 +179,6 @@ function setMode(mode) {
           status.textContent = newVisibility ? "Overlay shown!" : "Overlay hidden!";
           setTimeout(() => { status.textContent = ""; }, 3000);
         });
-      } else {
-        status.textContent = "Please navigate to wplace.live first!";
-        setTimeout(() => { status.textContent = ""; }, 3000);
       }
     });
   });
@@ -189,7 +186,7 @@ function setMode(mode) {
   // Remove overlay
   removeOverlayBtn.addEventListener('click', () => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+      if (tabs[0] && tabs[0].url.startsWith("http")) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'removeOverlay'
         });
