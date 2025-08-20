@@ -4,7 +4,7 @@
   <meta charset="utf-8">
   <title>WPlace Notifier Settings</title>
   <style>
-    body { font-family: sans-serif; padding: 10px; width: 250px; }
+    body { font-family: sans-serif; padding: 10px; width: 280px; }
     input[type="text"] { width: 100%; margin-bottom: 8px; }
     button { width: 100%; margin-bottom: 5px; padding: 5px; }
     .test-btn { background-color: #4CAF50; color: white; border: none; }
@@ -15,6 +15,10 @@
     .disable-btn:hover { background-color: #d32f2f; }
     .enable-btn { background-color: #2196F3; color: white; border: none; }
     .enable-btn:hover { background-color: #1976D2; }
+    .upload-btn { background-color: #9c27b0; color: white; border: none; }
+    .upload-btn:hover { background-color: #7b1fa2; }
+    .control-btn { background-color: #607d8b; color: white; border: none; margin-bottom: 5px; }
+    .control-btn:hover { background-color: #455a64; }
     .info { font-size: 12px; color: #666; margin-bottom: 10px; background-color: #f0f8ff; padding: 8px; border-radius: 4px; }
     .info a { color: #0066cc; text-decoration: none; }
     .info a:hover { text-decoration: underline; }
@@ -22,6 +26,9 @@
     .summary { font-size: 12px; color: #333; margin-bottom: 10px; }
     .inline-checkbox { display: flex; align-items: center; gap: 6px; font-size: 12px; margin: 8px 0; }
     .inline-checkbox input { margin: 0; }
+    .slider-container { margin: 8px 0; }
+    .slider-container label { font-size: 12px; display: block; margin-bottom: 4px; }
+    .slider-container input { width: 100%; }
   </style>
 </head>
 <body>
@@ -34,8 +41,6 @@
     <strong>Important:</strong> Make sure you're logged into <a href="https://wplace.live" target="_blank">wplace.live</a> in this browser tab first. The extension uses your current login session.
   </div>
   
-  
-
   <button id="connectTelegram" class="test-btn">Connect Telegram</button>
   <button id="test" class="test-btn">Test Notification</button>
   <button id="reset" class="reset-btn">Reset Notifications</button>
@@ -44,6 +49,19 @@
   <p id="status"></p>
 
   <label class="inline-checkbox"><input type="checkbox" id="notifyAtHalf" /> Notify when pixel count is at half</label>
+  
+  <hr/>
+  
+  <h4>Image Overlay</h4>
+  <input type="file" id="imageUpload" accept="image/*" style="display: none;">
+  <button id="uploadImage" class="upload-btn">Upload Reference Image</button>
+  <div class="slider-container">
+    <label for="opacitySlider">Opacity: <span id="opacityValue">50%</span></label>
+    <input type="range" id="opacitySlider" min="0" max="100" value="50">
+  </div>
+  <button id="toggleOverlay" class="control-btn">Show/Hide Overlay</button>
+  <button id="removeOverlay" class="control-btn">Remove Overlay</button>
+  
   <hr/>
   <div id="connectionStatus">Telegram: unknown</div>
 
