@@ -159,6 +159,17 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
     console.log("Stopping monitoring...");
     chrome.alarms.clear("pixelCheck");
     sendResponse({ success: true });
+  } else if (request.action === "overlayModeChanged") {
+    // Forward mode changes to content script
+    chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+        chrome.tabs.sendMessage(tabs[0].id, {
+          action: 'setMode',
+          mode: request.mode
+        });
+      }
+    });
+    sendResponse({ success: true });
   }
+  return true; // Indicates we will send a response asynchronously
 });
-  

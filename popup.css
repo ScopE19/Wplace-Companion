@@ -1,0 +1,176 @@
+body { 
+    font-family: sans-serif; 
+    padding: 10px; 
+    width: 280px; 
+  }
+  
+  input[type="text"] { 
+    width: 100%; 
+    margin-bottom: 8px; 
+  }
+  
+  button { 
+    width: 100%; 
+    margin-bottom: 5px; 
+    padding: 5px; 
+  }
+  
+  .test-btn { 
+    background-color: #4CAF50; 
+    color: white; 
+    border: none; 
+  }
+  
+  .test-btn:hover { 
+    background-color: #45a049; 
+  }
+  
+  .reset-btn { 
+    background-color: #ff9800; 
+    color: white; 
+    border: none; 
+  }
+  
+  .reset-btn:hover { 
+    background-color: #f57c00; 
+  }
+  
+  .disable-btn { 
+    background-color: #f44336; 
+    color: white; 
+    border: none; 
+  }
+  
+  .disable-btn:hover { 
+    background-color: #d32f2f; 
+  }
+  
+  .upload-btn { 
+    background-color: #9c27b0; 
+    color: white; 
+    border: none; 
+  }
+  
+  .upload-btn:hover { 
+    background-color: #7b1fa2; 
+  }
+  
+  .control-btn { 
+    background-color: #607d8b; 
+    color: white; 
+    border: none; 
+    margin-bottom: 5px; 
+  }
+  
+  .control-btn:hover { 
+    background-color: #455a64; 
+  }
+  
+  .info { 
+    font-size: 12px; 
+    color: #666; 
+    margin-bottom: 10px; 
+    background-color: #f0f8ff; 
+    padding: 8px; 
+    border-radius: 4px; 
+  }
+  
+  .info a { 
+    color: #0066cc; 
+    text-decoration: none; 
+  }
+  
+  .info a:hover { 
+    text-decoration: underline; 
+  }
+  
+  .warning { 
+    font-size: 11px; 
+    color: #d32f2f; 
+    margin-bottom: 10px; 
+    background-color: #ffebee; 
+    padding: 8px; 
+    border-radius: 4px; 
+    border-left: 3px solid #f44336; 
+  }
+  
+  .summary { 
+    font-size: 12px; 
+    color: #333; 
+    margin-bottom: 10px; 
+  }
+  
+  .inline-checkbox { 
+    display: flex; 
+    align-items: center; 
+    gap: 6px; 
+    font-size: 12px; 
+    margin: 8px 0; 
+  }
+  
+  .inline-checkbox input { 
+    margin: 0; 
+  }
+  
+  .slider-container { 
+    margin: 8px 0; 
+  }
+  
+  .slider-container label { 
+    font-size: 12px; 
+    display: block; 
+    margin-bottom: 4px; 
+  }
+  
+  .slider-container input { 
+    width: 100%; 
+  }
+  
+  .section-header { 
+    margin-top: 15px; 
+    margin-bottom: 8px; 
+    padding-bottom: 5px; 
+    border-bottom: 1px solid #ddd; 
+    font-weight: bold; 
+    color: #333; 
+  }
+  
+  .mode-selector {
+    display: flex;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+  
+  .mode-btn {
+    flex: 1;
+    padding: 5px;
+    text-align: center;
+    background: #f0f0f0;
+    border: none;
+    cursor: pointer;
+  }
+  
+  .mode-btn.active {
+    background: #2196F3;
+    color: white;
+  }
+  
+  .mode-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+  
+  .icon-wrapper {
+    display: flex;
+    justify-content: center; /* horizontally center */
+    align-items: center;     /* vertically center if you give wrapper a height */
+    margin-top: 10px;
+  }
+  
+  .icon {
+    width: 60px;
+    height: 60px;
+  }
+  

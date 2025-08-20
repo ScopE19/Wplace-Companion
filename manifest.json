@@ -1,26 +1,39 @@
 {
-    "manifest_version": 3,
-    "name": "WPlace Pixel Notifier",
-    "version": "1.0",
-    "description": "Notifies when your pixel count is full.",
-    "permissions": [
-      "storage",
-      "alarms",
-      "activeTab",
-      "scripting"
-    ],
-    "host_permissions": [
-      "https://backend.wplace.live/*",
-      "https://*.netlify.app/*"
-    ],
-    "background": {
-      "service_worker": "background.js"
-    },
-    "action": {
-      "default_popup": "popup.html",
-      "default_icon": {
-        "48": "/icon.png"
-      }
+  "manifest_version": 3,
+  "name": "WPlace Companion",
+  "version": "1.1",
+  "description": "Notifies when your pixel count is full and provides image overlay reference.",
+  "permissions": [
+    "storage",
+    "alarms",
+    "activeTab",
+    "scripting"
+  ],
+  "host_permissions": [
+    "https://backend.wplace.live/*",
+    "https://*.netlify.app/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "48": "/icon.png"
     }
+  },
+  "content_scripts": [
+  {
+    "matches": ["https://wplace.live/*", "https://www.wplace.live/*"],
+    "js": ["overlay.js"],
+    "run_at": "document_idle"
   }
+],
   
+  "web_accessible_resources": [
+    {
+      "resources": ["overlay.css"],
+      "matches": ["https://wplace.live/*"]
+    }
+  ]
+}

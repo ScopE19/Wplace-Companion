@@ -10,6 +10,10 @@ document.addEventListener("DOMContentLoaded", () => {
   const opacityValue = document.getElementById("opacityValue");
   const toggleOverlayBtn = document.getElementById("toggleOverlay");
   const removeOverlayBtn = document.getElementById("removeOverlay");
+  const paintModeBtn = document.getElementById("paintModeBtn");
+  const moveModeBtn = document.getElementById("moveModeBtn");
+  
+  let currentMode = 'paint'; // 'paint' or 'move'
 
   const API_BASE = 'https://wplace-companion.netlify.app/.netlify/functions';
 
@@ -29,16 +33,62 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   // Load saved values
-  chrome.storage.local.get(["monitoringEnabled", "notifyAtHalf", "overlaySettings"], (res) => {
-    updateMonitoringButton(res.monitoringEnabled !== false); // Default to true if not set
+  chrome.storage.local.get(["monitoringEnabled", "notifyAtHalf", "overlaySettings", "overlayMode"], (res) => {
+    updateMonitoringButton(res.monitoringEnabled !== false);
     notifyAtHalfCheckbox.checked = Boolean(res.notifyAtHalf);
     
-    // Set opacity slider if we have saved settings
     if (res.overlaySettings) {
       opacitySlider.value = res.overlaySettings.opacity || 50;
       opacityValue.textContent = `${opacitySlider.value}%`;
     }
+    
+    // Set the mode if saved
+    if (res.overlayMode) {
+      setMode(res.overlayMode);
+    } else {
+      setMode('paint');
+    }
+    
+    // If there's a stored image, show the overlay controls as active
+    chrome.storage.local.get(["overlayImage"], (result) => {
+      if (result.overlayImage) {
+        removeOverlayBtn.disabled = false;
+        toggleOverlayBtn.disabled = false;
+        opacitySlider.disabled = false;
+        paintModeBtn.disabled = false;
+        moveModeBtn.disabled = false;
+      }
+    });
   });
+
+  // Set the current mode
+function setMode(mode) {
+  currentMode = mode;
+  
+  if (mode === 'paint') {
+    paintModeBtn.classList.add('active');
+    moveModeBtn.classList.remove('active');
+  } else {
+    paintModeBtn.classList.remove('active');
+    moveModeBtn.classList.add('active');
+  }
+  
+  // Send message to content script to update mode
+  chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
+    if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+      chrome.tabs.sendMessage(tabs[0].id, {
+        action: 'setMode',
+        mode: mode
+      });
+    }
+  });
+  
+  chrome.storage.local.set({ overlayMode: mode });
+}
+
+  // Mode buttons
+  paintModeBtn.addEventListener('click', () => setMode('paint'));
+  moveModeBtn.addEventListener('click', () => setMode('move'));
 
   // Persist notify-at-half toggle
   notifyAtHalfCheckbox.addEventListener('change', () => {
@@ -62,31 +112,29 @@ document.addEventListener("DOMContentLoaded", () => {
           overlayImage: imageData,
           overlayVisible: true
         }, () => {
-          // Inject content script to handle overlay if not already injected
+          // Send message to create or update overlay
           chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-            if (tabs[0].url.includes('wplace.live')) {
-              chrome.scripting.executeScript({
-                target: {tabId: tabs[0].id},
-                files: ['overlay.js']
-              }).then(() => {
-                // Send message to create or update overlay
-                chrome.tabs.sendMessage(tabs[0].id, {
-                  action: 'createOverlay',
-                  imageData: imageData,
-                  opacity: parseInt(opacitySlider.value) / 100
-                });
-                status.textContent = "Image uploaded successfully!";
-                setTimeout(() => { status.textContent = ""; }, 3000);
-              }).catch(err => {
-                console.error("Failed to inject overlay script:", err);
-                status.textContent = "Error: Could not add overlay to page.";
-                setTimeout(() => { status.textContent = ""; }, 3000);
+            if (tabs[0] && tabs[0].url.includes('wplace.live')) {
+              chrome.tabs.sendMessage(tabs[0].id, {
+                action: 'createOverlay',
+                imageData: imageData,
+                opacity: parseInt(opacitySlider.value) / 100,
+                mode: currentMode
               });
+              status.textContent = "Image uploaded successfully!";
+              setTimeout(() => { status.textContent = ""; }, 3000);
             } else {
               status.textContent = "Please navigate to wplace.live first!";
               setTimeout(() => { status.textContent = ""; }, 3000);
             }
           });
+          
+          // Enable controls
+          removeOverlayBtn.disabled = false;
+          toggleOverlayBtn.disabled = false;
+          opacitySlider.disabled = false;
+          paintModeBtn.disabled = false;
+          moveModeBtn.disabled = false;
         });
       };
       reader.readAsDataURL(file);
@@ -106,7 +154,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     // Update overlay if it exists
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs[0].url.includes('wplace.live')) {
+      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'updateOverlayOpacity',
           opacity: parseInt(opacitySlider.value) / 100
@@ -118,9 +166,18 @@ document.addEventListener("DOMContentLoaded", () => {
   // Toggle overlay visibility
   toggleOverlayBtn.addEventListener('click', () => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs[0].url.includes('wplace.live')) {
+      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'toggleOverlay'
+        });
+        
+        // Toggle stored visibility state
+        chrome.storage.local.get(["overlayVisible"], (result) => {
+          const newVisibility = !result.overlayVisible;
+          chrome.storage.local.set({ overlayVisible: newVisibility });
+          
+          status.textContent = newVisibility ? "Overlay shown!" : "Overlay hidden!";
+          setTimeout(() => { status.textContent = ""; }, 3000);
         });
       } else {
         status.textContent = "Please navigate to wplace.live first!";
@@ -132,19 +189,27 @@ document.addEventListener("DOMContentLoaded", () => {
   // Remove overlay
   removeOverlayBtn.addEventListener('click', () => {
     chrome.tabs.query({active: true, currentWindow: true}, (tabs) => {
-      if (tabs[0].url.includes('wplace.live')) {
+      if (tabs[0] && tabs[0].url.includes('wplace.live')) {
         chrome.tabs.sendMessage(tabs[0].id, {
           action: 'removeOverlay'
         });
       }
       
       // Clear stored image
-      chrome.storage.local.remove(["overlayImage", "overlayVisible"]);
-      status.textContent = "Overlay removed!";
-      setTimeout(() => { status.textContent = ""; }, 3000);
+      chrome.storage.local.remove(["overlayImage", "overlayVisible"], () => {
+        status.textContent = "Overlay removed!";
+        setTimeout(() => { status.textContent = ""; }, 3000);
+        
+        // Disable controls
+        removeOverlayBtn.disabled = true;
+        toggleOverlayBtn.disabled = true;
+        opacitySlider.disabled = true;
+        paintModeBtn.disabled = true;
+        moveModeBtn.disabled = true;
+      });
     });
   });
-
+  
   // Connect Telegram
   if (connectBtn) {
     connectBtn.addEventListener("click", () => {
@@ -233,7 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Toggle monitoring
   toggleButton.addEventListener("click", () => {
     chrome.storage.local.get(["monitoringEnabled"], (res) => {
-      const newState = !(res.monitoringEnabled !== false); // Toggle from current state
+      const newState = !(res.monitoringEnabled !== false);
       
       chrome.storage.local.set({ monitoringEnabled: newState }, () => {
         updateMonitoringButton(newState);
@@ -262,4 +327,11 @@ document.addEventListener("DOMContentLoaded", () => {
       toggleButton.className = "enable-btn";
     }
   }
+  
+  // Initialize button states
+  removeOverlayBtn.disabled = true;
+  toggleOverlayBtn.disabled = true;
+  opacitySlider.disabled = true;
+  paintModeBtn.disabled = true;
+  moveModeBtn.disabled = true;
 });
