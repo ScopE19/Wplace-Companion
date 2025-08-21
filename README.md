@@ -30,12 +30,9 @@ It has two main features:
 
 ---
 
-## Important Notice
+## Support
+If you like this project, you can support me here: [DonationAlerts](https://www.donationalerts.com/r/scope19)
 
-- This extension calls the WPlace backend API every **2–5 minutes** to check your pixel count.  
-- Using automation may violate Wplace Terms of Service. Use at your own risk.  
-
----
 
 ## License
 
